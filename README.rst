@@ -112,7 +112,7 @@ Configuration
         'social_auth.backends.contrib.linkedin.LinkedinBackend',
         'social_auth.backends.contrib.LiveJournalBackend',
         'social_auth.backends.contrib.orkut.OrkutBackend',
-        'social_auth.backends.contrib.orkut.FoursquareBackend',
+        'social_auth.backends.contrib.foursquare.FoursquareBackend',
         'social_auth.backends.contrib.github.GithubBackend',
         'social_auth.backends.OpenIDBackend',
         'django.contrib.auth.backends.ModelBackend',
@@ -292,6 +292,16 @@ Configuration
   This behavior is disabled by default (false) unless specifically set::
 
       SOCIAL_AUTH_ASSOCIATE_BY_MAIL = True
+
+- You can send extra parameters on auth process by defining settings per
+  provider, example to request Facebook to show Mobile authorization page,
+  define::
+
+      FACEBOOK_AUTH_EXTRA_ARGUMENTS = {'display': 'touch'}
+
+  For other providers, just define settings in the form::
+
+      <uppercase backend name>_AUTH_EXTRA_ARGUMENTS = {...}
 
 
 -------
