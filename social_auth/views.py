@@ -40,6 +40,7 @@ BACKEND_ERROR_REDIRECT = _setting('SOCIAL_AUTH_BACKEND_ERROR_URL',
                                   LOGIN_ERROR_URL)
 ERROR_KEY = _setting('SOCIAL_AUTH_BACKEND_ERROR', 'socialauth_backend_error')
 NAME_KEY = _setting('SOCIAL_AUTH_BACKEND_KEY', 'socialauth_backend_name')
+SANITIZE_REDIRECTS = _setting('SOCIAL_AUTH_SANITIZE_REDIRECTS', True)
 
 
 def dsa_view(redirect_name=None):
@@ -87,7 +88,7 @@ def auth(request, backend):
 
 
 @csrf_exempt
-@transaction.commit_on_success
+#@transaction.commit_on_success
 @dsa_view()
 def complete(request, backend):
     """Authentication complete view, override this view if transaction
@@ -134,8 +135,10 @@ def auth_process(request, backend):
         data = request.POST if request.method == 'POST' else request.GET
         if REDIRECT_FIELD_NAME in data:
             # Check and sanitize a user-defined GET/POST redirect_to field value.
-            redirect = sanitize_redirect(request.get_host(),
-                                         data[REDIRECT_FIELD_NAME])
+            redirect = data[REDIRECT_FIELD_NAME]
+
+            if SANITIZE_REDIRECTS:
+                redirect = sanitize_redirect(request.get_host(), redirect)
             request.session[REDIRECT_FIELD_NAME] = redirect or DEFAULT_REDIRECT
 
     if backend.uses_redirect:
@@ -180,11 +183,4 @@ def auth_complete(request, backend, user=None):
     """Complete auth process. Return authenticated user or None."""
     if user and not user.is_authenticated():
         user = None
-
-    try:
-        user = backend.auth_complete(user=user)
-    except ValueError, e:  # some Authentication error ocurred
-        error_key = getattr(settings, 'SOCIAL_AUTH_ERROR_KEY', None)
-        if error_key:  # store error in session
-            request.session[error_key] = str(e)
-    return user
+    return backend.auth_complete(user=user)
